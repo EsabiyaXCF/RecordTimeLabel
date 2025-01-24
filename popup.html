@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Twitch時間標記器</title>
+  <style>
+    :root {
+      --main-purple: #6441a5;
+      --hover-purple: #7d5bbe;
+      --active-blue: #4dabf7;
+      --danger-red: #dc3545;
+    }
+
+    body {
+      width: 500px;
+      padding: 15px;
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .main-container {
+      display: flex;
+      gap: 15px;
+      height: 500px;
+    }
+
+    .folders-pane {
+      width: 160px;
+      min-width: 160px;
+      background: white;
+      border-radius: 6px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+
+    .records-pane {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #titleInput {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid var(--main-purple);
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: all 0.3s;
+    }
+
+    #titleInput:focus {
+      border-color: var(--hover-purple);
+      box-shadow: 0 0 8px rgba(100, 65, 165, 0.2);
+    }
+
+    .record-btn {
+      background: var(--main-purple);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .record-btn:hover {
+      background: var(--hover-purple);
+    }
+
+    #status {
+      color: #666;
+      font-size: 0.9em;
+      margin: 12px 0;
+      min-height: 20px;
+    }
+
+    #recordsList {
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .record-item {
+      padding: 10px;
+      margin: 8px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+      background: white;
+      border-radius: 6px;
+      cursor: move;
+      position: relative;
+    }
+
+    .record-item.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .record-item:hover {
+      background: #f8f6ff;
+    }
+
+    .record-time {
+      display: flex;
+      justify-content: space-between;
+      color: #666;
+      font-size: 0.85em;
+    }
+
+    .delete-btn {
+      color: var(--danger-red);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 2px 6px;
+      margin-left: auto;
+      transition: color 0.2s;
+    }
+
+    .delete-btn:hover {
+      color: #bb2d3b;
+    }
+
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .folder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .add-folder-btn {
+      background: var(--main-purple);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .folder-item {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8f9fa;
+      position: relative;
+    }
+
+    .folder-item.selected {
+      background: #e6f3ff !important;
+      box-shadow: inset 3px 0 0 var(--active-blue);
+      transition: all 0.3s;
+    }
+
+    .folder-item.dragover {
+      background: #e7f5ff;
+      box-shadow: inset 0 0 0 2px var(--active-blue);
+    }
+
+    .folder-item:hover {
+      background: #e9ecef;
+    }
+
+    .folder-count {
+  left: 28px;  /* 根据图标宽度25px + 间距3px */
+  bottom: 4px; /* 与原设计保持一致 */
+  /* 新增视觉强化 */
+  font-weight: bold;
+  color: #6441a5;
+}
+
+    .folder-delete-btn {
+      position: absolute;
+      right: 8px;
+      top: 6px;
+      color: var(--danger-red);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
+
+    .folder-item:hover .folder-delete-btn {
+      opacity: 1;
+    }
+
+    .folder-item.uncategorized {
+      background: #f8f9fa !important;
+      cursor: default;
+    }
+
+    .folder-item.uncategorized .folder-delete-btn {
+      display: none !important;
+    }
+
+    .folder-item.uncategorized::after {
+      content: "系統預設";
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.7em;
+      color: #666;
+      opacity: 0.8;
+    }
+
+    .error-message {
+      color: var(--danger-red);
+      background: #ffeef0;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="folders-pane">
+      <div class="folder-header">
+        <span>分類資料夾</span>
+        <button class="add-folder-btn" id="addFolderBtn">+</button>
+      </div>
+      <div id="foldersList"></div>
+    </div>
+
+    <div class="records-pane">
+      <input type="text" id="titleInput" placeholder="輸入時間點備註 (例如：精彩操作)">
+      <button class="record-btn" id="recordBtn">⏺ 記錄當前時間</button>
+      <div id="status">就緒</div>
+      <div id="recordsList"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
