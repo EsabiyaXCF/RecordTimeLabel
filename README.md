@@ -71,7 +71,7 @@
 
 影片演示
 ======
-https://youtu.be/aukdutw0vRE
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/aukdutw0vRE/0.jpg)](https://www.youtube.com/watch?v=aukdutw0vRE)
 
 ***
 
