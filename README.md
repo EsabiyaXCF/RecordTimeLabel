@@ -1,4 +1,4 @@
-# TwitchTimeLebels
+# TwitchTimeLabels
 作者:台V上的一朵雛菊🌼
 
 方便記錄Twitch直播時間點，一鍵前往紀錄點VOD
