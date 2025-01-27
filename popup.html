@@ -4,50 +4,58 @@
   <meta charset="UTF-8">
   <title>Twitch時間標記器</title>
   <style>
-    :root {
-      --main-purple: #6441a5;
-      --hover-purple: #7d5bbe;
-      --active-blue: #4dabf7;
-      --danger-red: #dc3545;
-    }
+:root {
+  --main-purple: #6441a5;
+  --hover-purple: #7d5bbe;
+  --active-blue: #4dabf7;
+  --danger-red: #dc3545;
+}
+body {
+  width: 500px;
+  padding: 15px;
+  font-family: "Microsoft JhengHei", Arial, sans-serif;
+  background: #f5f5f5;
+  -ms-overflow-style: none;  /* IE 和 Edge */
+  scrollbar-width: none;  /* Firefox */
+}
 
-    body {
-      width: 500px;
-      padding: 15px;
-      font-family: "Microsoft JhengHei", Arial, sans-serif;
-      background: #f5f5f5;
-    }
+.main-container {
+  display: flex;
+  gap: 15px;
+  height: 500px;
+}
 
-    .main-container {
-      display: flex;
-      gap: 15px;
-      height: 500px;
-    }
+.folders-pane {
+  width: 160px;
+  min-width: 160px;
+  background: white;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-    .folders-pane {
-      width: 160px;
-      min-width: 160px;
-      background: white;
-      border-radius: 6px;
-      padding: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      overflow-y: auto;
-    }
+.records-pane {
+  flex: 1;
+  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-    .records-pane {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    #titleInput {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 2px solid var(--main-purple);
-      border-radius: 6px;
-      box-sizing: border-box;
-      transition: all 0.3s;
-    }
+#titleInput {
+  width: 100%;
+  color: var(--main-purple);
+  background-color: white;  /* 明確設定背景色為白色 */
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid var(--main-purple);
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: all 0.3s;
+  font-size: 16px;
+}
 
     #titleInput:focus {
       border-color: var(--hover-purple);
@@ -78,10 +86,13 @@
     }
 
     #recordsList {
-      margin-top: 15px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
+  margin-top: 15px;
+  max-height: 400px;
+  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 
     .record-item {
       padding: 10px;
@@ -114,32 +125,33 @@
     }
 
     .delete-btn {
-      color: var(--danger-red);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.2em;
-      padding: 2px 6px;
-      margin-left: auto;
-      transition: color 0.2s;
-    }
+  color: var(--danger-red);
+  font-size: 1.8em;  /* 放大图标 */
+  margin-left: 0;
+}
 
-    .delete-btn:hover {
-      color: #bb2d3b;
-    }
+.delete-btn:hover {
+  color: #bb2d3b;
+  transform: scale(1.1);
+}
 
-    .record-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
+.record-header {
+  padding-right: 90px; /* 减少右侧空间 */
+}
 
     .folder-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
+      position: relative;
+      min-height: 24px; /* 確保高度一致 */
+    }
+
+    .folder-header span {
+      font-size: 18px;  /* 增加文字大小 */
+      font-weight: 700;  /* 改為更粗的字體 */
+      color: var(--main-purple);  /* 使用主題色 */
     }
 
     .add-folder-btn {
@@ -178,12 +190,11 @@
     }
 
     .folder-count {
-  left: 28px;  /* 根据图标宽度25px + 间距3px */
-  bottom: 4px; /* 与原设计保持一致 */
-  /* 新增视觉强化 */
-  font-weight: bold;
-  color: #6441a5;
-}
+      left: 28px;
+      bottom: 4px;
+      font-weight: bold;
+      color: #6441a5;
+    }
 
     .folder-delete-btn {
       position: absolute;
@@ -208,9 +219,11 @@
       opacity: 1;
     }
 
+    /* 新增未分類專用樣式 */
     .folder-item.uncategorized {
       background: #f8f9fa !important;
       cursor: default;
+      order: -1; /* 始終顯示在最前面 */
     }
 
     .folder-item.uncategorized .folder-delete-btn {
@@ -235,7 +248,239 @@
       border-radius: 4px;
       margin: 10px 0;
     }
-    
+        /* 新增拖曳排序樣式 */
+        .folder-item.dragging,
+    .record-item.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .folder-item.ghost {
+      background: #e9ecef;
+      border: 2px dashed var(--active-blue);
+    }
+
+    .record-item.ghost {
+      background: #f8f6ff;
+      border: 2px dashed var(--active-blue);
+    }
+  .folders-pane .folder-item.dragging:not(.uncategorized) {
+    opacity: 0.8;
+    transform: rotate(2deg);
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000; /* 确保在最上层 */
+  }
+
+  /* 插入位置指示线 */
+  .folders-pane .folder-item.dragover:not(.uncategorized) {
+    border-top: 2px solid var(--active-blue) !important;
+    margin-top: -2px !important;
+  }
+
+  /* 禁用未分类的交互 */
+  .folder-item.uncategorized {
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+    filter: grayscale(0.3);
+  }
+  /* 新增复制按钮样式 */
+  .copy-btn {
+  color: var(--main-purple);
+  font-size: 1.6em;  /* 放大图标 */
+  position: relative;
+}
+.copy-btn::after,
+.delete-btn::after {
+  content: '';
+  display: block;
+  width: 24px;  /* 图标实际点击区域 */
+  height: 24px;
+}
+.copy-btn, 
+.delete-btn {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto;
+  height: auto;
+}
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  position: absolute;
+  right: 8px;  /* 更靠右 */
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px;
+}
+.copy-btn:hover {
+  color: var(--hover-purple);
+  transform: translateY(-1px);
+}
+
+
+
+/* 新增直播標題的樣式 */
+.record-title {
+  color: #2e063d;
+  font-size: 12px;
+}
+
+/* 修改記錄主題的樣式 */
+.record-topic {
+  font-size: 16px;
+  color: var(--main-purple);
+  margin-bottom: 4px;
+  font-weight: 500;
+  display: inline-block;  /* 讓背景框貼合文字 */
+  padding: 2px 8px;  /* 文字和背景框之間的間距 */
+  background-color: #f8f6ff;  /* 淺紫色背景 */
+  border-radius: 6px;  /* 圓角 */
+}
+
+/* 編輯模式的輸入框樣式 */
+.edit-input {
+  font-size: 16px;
+  color: var(--main-purple);
+  border: 2px solid var(--main-purple);
+  border-radius: 4px;
+  padding: 2px 4px;
+  width: calc(100% - 50px); /* 預留確認按鈕空間 */
+  margin-right: 5px;
+}
+
+/* 確認按鈕樣式 */
+.confirm-edit-btn {
+  color: var(--main-purple);
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 5px;
+  vertical-align: middle;
+}
+
+.confirm-edit-btn:hover {
+  color: var(--hover-purple);
+  transform: scale(1.1);
+}
+
+/* 編輯模式容器 */
+.edit-container {
+  display: inline-flex;  /* 改為 inline-flex 讓容器大小符合內容 */
+  align-items: center;
+  margin-bottom: 4px;
+  background-color: #f8f6ff;  /* 保持與非編輯模式相同的背景色 */
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+
+/* 資料夾名稱樣式 */
+.folder-name {
+  cursor: default;  /* 改為預設游標 */
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+/* 調整資料夾編輯時的樣式 */
+.folder-item .edit-container {
+  display: flex;
+  align-items: center;
+  margin: -2px 0;
+  padding: 2px 0;
+}
+
+.folder-item .edit-input {
+  width: calc(100% - 60px);
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.folder-item .confirm-edit-btn {
+  padding: 0 4px;
+}
+
+/* 拖曳相關樣式 */
+.folder-item.dragging {
+  opacity: 0.8;
+  background: #f8f6ff;
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+.folder-item.dragover {
+  border-top: 2px solid var(--active-blue);
+  margin-top: -2px;
+  background: #e7f5ff;
+}
+
+/* 確保未分類資料夾不可拖曳 */
+.folder-item.uncategorized {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* 修改拖曳相關樣式 */
+.folder-item.dragging {
+  opacity: 0.8;
+  background: #f8f6ff;
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
+}
+
+/* 新增資料夾輸入框樣式 */
+.new-folder-container {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.new-folder-container .edit-input {
+  width: calc(100% - 35px);  /* 預留確認按鈕的空間 */
+  font-size: 14px;
+  margin-right: 5px;
+}
+
+.new-folder-container .confirm-edit-btn {
+  padding: 0 4px;
+}
+
+/* 調整資料夾標題區域樣式 */
+.folder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+  min-height: 24px; /* 確保高度一致 */
+}
+
+/* 直播標題連結樣式 */
+.stream-link {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.stream-link:hover {
+  color: var(--main-purple);
+  text-decoration: underline;
+}
+
+/* 修改記錄標題的樣式 */
+.record-title {
+  color: #2e063d;
+  font-size: 12px;
+  cursor: pointer;
+}
   </style>
 </head>
 <body>
@@ -249,7 +494,7 @@
     </div>
 
     <div class="records-pane">
-      <input type="text" id="titleInput" placeholder="輸入時間點備註 (例如：精彩操作)">
+      <input type="text" id="titleInput" placeholder="在這裡輸入主題">
       <button class="record-btn" id="recordBtn">⏺ 記錄當前時間</button>
       <div id="status">就緒</div>
       <div id="recordsList"></div>

@@ -6,8 +6,11 @@
     "icons": {
       "128": "icons/icon128.png"
     },
-    "permissions": ["storage", "activeTab", "scripting"],
-    "host_permissions": ["*://*.twitch.tv/*"],
+    "permissions": ["storage", "activeTab", "scripting", "clipboardWrite"],
+    "host_permissions": [
+      "*://*.twitch.tv/*",
+      "https://api.twitch.tv/*"
+    ],
     "action": {
       "default_popup": "popup/popup.html"
     },
