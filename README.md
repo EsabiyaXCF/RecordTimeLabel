@@ -1,4 +1,6 @@
 # TwitchTimeLebels
+作者:台V上的一朵雛菊🌼
+
 方便記錄Twitch直播時間點，一鍵前往紀錄點VOD
 
 ***
@@ -64,5 +66,13 @@
 * 集中相同直播的紀錄至同一摺疊
 
 * 可以同時選取多個不同的紀錄編輯
+
+***
+
+備註
+======
+有使用AI輔助Coding，所以整個架構和註解並不是寫得很好，請見諒
+
+<a href="https://www.flaticon.com/free-icons/timestamp" title="timestamp icons">Timestamp icons created by Icon home - Flaticon</a>
 
 
