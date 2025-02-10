@@ -1,5 +1,6 @@
 // 時間元素選擇器
-const TIME_SELECTOR = '.live-time > span[aria-hidden="true"]';
+const LIVE_TIME_SELECTOR = '.live-time > span[aria-hidden="true"]';
+const VOD_TIME_SELECTOR = '.CoreText-sc-1txzju1-0.ckwzla';
 const STREAM_TITLE_SELECTOR = 'p[data-a-target="stream-title"]';
 
 // 主消息處理器
@@ -63,7 +64,15 @@ function handleGetStreamTitle(sendResponse) {
 }
 // 處理獲取時間請求
 function handleGetTime(sendResponse) {
-  const timeElement = document.querySelector(TIME_SELECTOR);
+  // 先嘗試獲取直播時間
+  let timeElement = document.querySelector(LIVE_TIME_SELECTOR);
+  let isLiveStream = true;
+  
+  // 如果找不到直播時間，嘗試獲取影片時間
+  if (!timeElement) {
+    timeElement = document.querySelector(VOD_TIME_SELECTOR);
+    isLiveStream = false;
+  }
   
   if (!timeElement) {
     console.error('[Content] 時間元素不存在');
@@ -80,24 +89,38 @@ function handleGetTime(sendResponse) {
     success: isValid,
     time: isValid ? rawTime : null,
     rawElementText: timeElement.textContent,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    isLiveStream: isLiveStream
   });
 }
 
 // 處理選擇器驗證
 function handleValidateSelector(sendResponse) {
-  const elementExists = !!document.querySelector(TIME_SELECTOR);
+  const liveElementExists = !!document.querySelector(LIVE_TIME_SELECTOR);
+  const vodElementExists = !!document.querySelector(VOD_TIME_SELECTOR);
+  
   sendResponse({ 
-    valid: elementExists,
-    selector: TIME_SELECTOR,
-    documentState: document.readyState 
+    valid: liveElementExists || vodElementExists,
+    selector: liveElementExists ? LIVE_TIME_SELECTOR : VOD_TIME_SELECTOR,
+    documentState: document.readyState,
+    isLiveStream: liveElementExists
   });
 }
 
 // 修改獲取頻道 URL 的函數
 async function handleGetChannelUrl(sendResponse) {
   try {
-    // 1. 先獲取頻道連結
+    const currentUrl = window.location.href;
+    
+    // 檢查是否在影片頁面
+    const videoMatch = currentUrl.match(/^https:\/\/www\.twitch\.tv\/videos\/(\d+)/);
+    if (videoMatch) {
+      // 如果是影片頁面，直接使用當前網址
+      console.log('[Content] 當前在影片頁面，使用當前URL');
+      return sendResponse({ url: `https://www.twitch.tv/videos/${videoMatch[1]}` });
+    }
+
+    // 如果不是影片頁面，使用原有的直播頁面邏輯
     const channelLink = document.querySelector('.Layout-sc-1xcs6mc-0.kpHsJz.avatar--t0iT1 a');
     if (!channelLink) {
       console.error('[Content] 找不到頻道連結');
@@ -110,11 +133,11 @@ async function handleGetChannelUrl(sendResponse) {
       return sendResponse({ url: null });
     }
 
-    // 2. 從 href 中提取用戶名
+    // 從 href 中提取用戶名
     const username = href.replace('/', '');
     console.log('[Content] 頻道用戶名:', username);
 
-    // 3. 使用 GQL API 獲取影片
+    // 使用 GQL API 獲取影片
     const gqlEndpoint = 'https://gql.twitch.tv/gql';
     const query = [{
       operationName: 'FilterableVideoTower_Videos',
@@ -144,16 +167,15 @@ async function handleGetChannelUrl(sendResponse) {
     const data = await response.json();
     console.log('[Content] GQL 回應:', data);
 
-    // 4. 從回應中提取影片資訊
+    // 從回應中提取影片資訊
     const videos = data[0]?.data?.user?.videos?.edges;
     if (!videos || videos.length === 0) {
       console.log('[Content] 找不到影片，返回影片列表頁面');
       return sendResponse({ url: `https://www.twitch.tv${href}/videos` });
     }
 
-    // 5. 構建影片 URL（修改這裡）
+    // 構建影片 URL
     const videoId = videos[0].node.id;
-    // 直接使用 videoId，不需要包含頻道名稱
     const finalUrl = `https://www.twitch.tv/videos/${videoId}`;
     
     console.log('[Content] 生成的影片URL:', finalUrl);
@@ -161,7 +183,6 @@ async function handleGetChannelUrl(sendResponse) {
 
   } catch (error) {
     console.error('[Content] 獲取影片URL失敗:', error);
-    const baseUrl = `https://www.twitch.tv${href}`;
-    sendResponse({ url: `${baseUrl}/videos` });
+    sendResponse({ url: null });
   }
 }

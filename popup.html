@@ -17,12 +17,14 @@ body {
   background: #f5f5f5;
   -ms-overflow-style: none;  /* IE 和 Edge */
   scrollbar-width: none;  /* Firefox */
+  overflow: hidden;
 }
 
 .main-container {
   display: flex;
   gap: 15px;
   height: 500px;
+  overflow: hidden;  /* 防止容器本身滾動 */
 }
 
 .folders-pane {
@@ -30,31 +32,139 @@ body {
   min-width: 160px;
   background: white;
   border-radius: 6px;
-  padding: 10px;
+  padding: 0;  /* 移除 padding */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  border-radius: 6px 6px 0 0;
+  min-height: 24px;
+}
+
+#foldersList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 美化資料夾區域的滾動條 */
+#foldersList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#foldersList::-webkit-scrollbar-track {
+  background: #f8f8f8;
+  border-radius: 3px;
+}
+
+#foldersList::-webkit-scrollbar-thumb {
+  background: rgba(100, 65, 165, 0.3);  /* 使用半透明的主題色 */
+  border-radius: 3px;
+}
+
+#foldersList::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 65, 165, 0.5);  /* hover 時稍微加深 */
 }
 
 .records-pane {
   flex: 1;
-  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  padding-right: 10px;
+  max-height: 500px;
+  height: 100%;  /* 確保完整高度 */
+}
+
+.records-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #f5f5f5;
+  padding-bottom: 0;
+}
+
+/* 調整記錄列表容器 */
+#foldersList {
+  overflow-y: auto;
+  padding-top: 10px;  /* 為固定標題下方添加間距 */
+}
+
+#titleInput,
+.record-btn,
+#status {
+  flex-shrink: 0;  /* 防止這些元素被壓縮 */
+}
+
+#recordsList {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 10px;  /* 減少底部間距 */
+  margin-top: 0;
+  margin-bottom: 0;  /* 移除底部邊距 */
+}
+
+/* 美化記錄區域的滾動條 */
+#recordsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#recordsList::-webkit-scrollbar-track {
+  background: #f8f8f8;
+  border-radius: 4px;
+}
+
+#recordsList::-webkit-scrollbar-thumb {
+  background: rgba(100, 65, 165, 0.3);
+  border-radius: 4px;
+}
+
+#recordsList::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 65, 165, 0.5);
+}
+
+/* 確保資料夾列表在視窗內完整顯示 */
+#foldersList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.folder-item {
+  flex-shrink: 0;  /* 防止資料夾被壓縮 */
+}
+
+/* 調整記錄列表的容器 */
+#recordsList {
+  margin-top: 15px;
+  padding-bottom: 15px;  /* 底部增加間距 */
 }
 
 #titleInput {
   width: 100%;
   color: var(--main-purple);
-  background-color: white;  /* 明確設定背景色為白色 */
+  background-color: white;
   padding: 10px;
-  margin: 10px 0;
+  margin: 0 0 10px 0;  /* 改為與 folder-header 的 margin-bottom 一致 */
   border: 2px solid var(--main-purple);
   border-radius: 6px;
   box-sizing: border-box;
   transition: all 0.3s;
-  font-size: 16px;
+  font-size: 18px;
 }
 
     #titleInput:focus {
@@ -66,12 +176,13 @@ body {
       background: var(--main-purple);
       color: white;
       border: none;
-      padding: 12px 24px;
+      padding: 8px 24px;
       border-radius: 6px;
       cursor: pointer;
       width: 100%;
       font-size: 16px;
       transition: background 0.3s;
+      margin-bottom: 4px;
     }
 
     .record-btn:hover {
@@ -81,22 +192,13 @@ body {
     #status {
       color: #666;
       font-size: 0.9em;
-      margin: 12px 0;
+      margin: 2px 0;
       min-height: 20px;
     }
 
-    #recordsList {
-  margin-top: 15px;
-  max-height: 400px;
-  overflow-y: auto;  /* 保持可滾動但隱藏滾動條 */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-
     .record-item {
       padding: 10px;
-      margin: 8px 0;
+      margin: 8px 0;  /* 保持原有的垂直間距 */
       border-bottom: 1px solid #eee;
       display: flex;
       flex-direction: column;
@@ -122,6 +224,8 @@ body {
       justify-content: space-between;
       color: #666;
       font-size: 0.85em;
+      margin-top: 8px; 
+      margin-bottom: 4px;
     }
 
     .delete-btn {
@@ -138,15 +242,6 @@ body {
 .record-header {
   padding-right: 90px; /* 减少右侧空间 */
 }
-
-    .folder-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      position: relative;
-      min-height: 24px; /* 確保高度一致 */
-    }
 
     .folder-header span {
       font-size: 18px;  /* 增加文字大小 */
@@ -333,12 +428,12 @@ body {
 .record-topic {
   font-size: 16px;
   color: var(--main-purple);
-  margin-bottom: 4px;
+  margin-bottom: 0;  /* 移除底部間距 */
   font-weight: 500;
-  display: inline-block;  /* 讓背景框貼合文字 */
-  padding: 2px 8px;  /* 文字和背景框之間的間距 */
-  background-color: #f8f6ff;  /* 淺紫色背景 */
-  border-radius: 6px;  /* 圓角 */
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #f8f6ff;
+  border-radius: 6px;
 }
 
 /* 編輯模式的輸入框樣式 */
@@ -481,6 +576,138 @@ body {
   font-size: 12px;
   cursor: pointer;
 }
+
+/* 記錄分組樣式 */
+.records-group {
+  margin-bottom: 15px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: move;
+  transition: all 0.2s ease;
+}
+
+.records-group.dragging {
+  opacity: 0.8;
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  background: #f8f6ff;
+  position: relative;
+  z-index: 1000;
+}
+
+.records-group.dragover {
+  border-top: 2px solid var(--active-blue);
+  margin-top: -2px;
+  background: #f0ebff;
+}
+
+.group-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #f8f6ff;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+  user-select: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);  /* 添加陰影效果 */
+}
+
+/* 確保滾動時標題背景完整 */
+.group-header::before {
+  content: '';
+  position: absolute;
+  top: -10px;  /* 延伸到上方 */
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: #f8f6ff;
+}
+
+.group-header:hover {
+  background: #f0ebff;
+}
+
+.group-header.collapsed {
+  border-bottom: none;
+}
+
+.group-title {
+  flex: 1;
+  font-weight: 500;
+  color: var(--main-purple);
+  margin-right: 10px;
+}
+
+.group-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-count {
+  padding: 2px 8px;
+  background: var(--main-purple);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.group-toggle {
+  color: var(--main-purple);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  font-size: 16px;
+}
+
+.group-toggle:hover {
+  transform: scale(1.2);
+}
+
+.group-content {
+  display: none;
+  background: white;
+}
+
+.group-content.show {
+  display: block;
+}
+
+.group-content .record-item {
+  margin: 0;
+  border-radius: 0;
+  border-bottom: 1px solid #eee;
+  padding: 10px 15px;
+}
+
+.group-content .record-item:last-child {
+  border-bottom: none;
+}
+
+.record-link {
+  margin-top: 4px;
+  font-size: 0.9em;
+}
+
+.record-link a {
+  color: var(--main-purple);
+  text-decoration: none;
+}
+
+.record-link a:hover {
+  text-decoration: underline;
+}
   </style>
 </head>
 <body>
@@ -494,9 +721,11 @@ body {
     </div>
 
     <div class="records-pane">
-      <input type="text" id="titleInput" placeholder="在這裡輸入主題">
-      <button class="record-btn" id="recordBtn">⏺ 記錄當前時間</button>
-      <div id="status">就緒</div>
+      <div class="records-header">
+        <input type="text" id="titleInput" placeholder="在這裡輸入主題">
+        <button class="record-btn" id="recordBtn">⏺ 記錄當前時間</button>
+        <div id="status">就緒</div>
+      </div>
       <div id="recordsList"></div>
     </div>
   </div>

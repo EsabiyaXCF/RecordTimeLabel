@@ -65,27 +65,49 @@ function migrateRecords(oldRecords) {
   }));
 }
 
-// ============== 修改开始 ==============
 function setupEventListeners() {
   UI.recordBtn.addEventListener('click', handleRecordClick);
   UI.titleInput.addEventListener('keypress', handleKeyPress);
   UI.addFolderBtn.addEventListener('click', handleCreateFolder);
   UI.foldersList.addEventListener('click', handleFolderClick);
   
-  // 修改拖曳事件监听逻辑
+  // 資料夾拖曳相關
+  UI.foldersList.addEventListener('dragstart', handleFolderDragStart);
+  UI.foldersList.addEventListener('dragend', handleFolderDragEnd);
+  UI.foldersList.addEventListener('dragover', handleFolderDragOver);
+  UI.foldersList.addEventListener('drop', handleFolderDrop);
+
+  // 記錄拖曳相關
   UI.recordsList.addEventListener('dragstart', handleDragStart);
   UI.recordsList.addEventListener('dragend', handleDragEnd);
-  UI.foldersList.addEventListener('dragover', handleCombinedDragOver);
-  UI.foldersList.addEventListener('dragleave', handleDragLeave);
-  UI.foldersList.addEventListener('drop', handleCombinedDrop);
-  
-  // 恢复记录栏排序监听
-  UI.recordsList.addEventListener('dragover', handleRecordsDragOver);
-  UI.recordsList.addEventListener('drop', handleRecordsDrop);
+  UI.recordsList.addEventListener('dragover', handleRecordDragOver);
+  UI.recordsList.addEventListener('drop', handleRecordDrop);
 
   UI.recordsList.addEventListener('click', handleDeleteClick);
   UI.recordsList.addEventListener('click', handleCopyClick);
 }
+
+// 資料夾拖曳相關函數
+function handleFolderDragStart(e) {
+  const folderItem = e.target.closest('.folder-item');
+  if (!folderItem || folderItem.classList.contains('uncategorized')) {
+    e.preventDefault();
+    return;
+  }
+  
+  folderItem.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  dragState = {
+    type: 'folder',
+    id: folderItem.dataset.id
+  };
+}
+
+function handleFolderDragEnd(e) {
+  e.target.closest('.folder-item')?.classList.remove('dragging');
+  dragState = null;
+}
+
 async function handleCopyClick(e) {
   const copyBtn = e.target.closest('.copy-btn');
   if (!copyBtn) return;
@@ -101,117 +123,16 @@ async function handleCopyClick(e) {
     showTempStatus('✕ 複製失敗');
   }
 }
-// 新增组合事件处理函数
-function handleCombinedDragOver(e) {
-  if (dragState.type === 'folder') {
-    handleSortDragOver(e);
-  } else {
-    handleDragOver(e);
-  }
-}
-
-function handleCombinedDrop(e) {
-  if (dragState.type === 'folder') {
-    handleSortDrop(e);
-  } else {
-    handleDrop(e);
-  }
-}
-
-// 记录栏专属拖曳处理
-function handleRecordsDragOver(e) {
-  if (dragState.type === 'record') handleSortDragOver(e);
-}
-async function handleRecordsDrop(e) {
-  if (dragState.type === 'record') handleSortDrop(e);
-}
-
-// 修改排序逻辑
-function handleSortDragOver(e) {
-  e.preventDefault();
-  if (!dragState.type) return;
-
-  // 严格限制操作区域
-  const isFolderOperation = e.currentTarget === UI.foldersList && dragState.type === 'folder';
-  const isRecordOperation = e.currentTarget === UI.recordsList && dragState.type === 'record';
-  if (!isFolderOperation && !isRecordOperation) return;
-
-  // 排除未分类文件夹和拖拽中元素
-  const validChildren = [...e.currentTarget.children].filter(child => 
-    !child.classList.contains('uncategorized') && 
-    !child.classList.contains('dragging')
-  );
-
-  // 精确计算插入位置
-  const afterElement = validChildren.reduce((closest, child) => {
-    const box = child.getBoundingClientRect();
-    const offset = e.clientY - box.top - box.height / 2;
-    return offset < 0 && offset > closest.offset ? 
-      { offset: offset, element: child } : closest;
-  }, { offset: Number.NEGATIVE_INFINITY }).element;
-
-  const draggable = document.querySelector('.dragging');
-  if (afterElement) {
-    e.currentTarget.insertBefore(draggable, afterElement);
-  } else {
-    e.currentTarget.appendChild(draggable);
-  }
-}
-
-// 修改handleSortDrop函数
-async function handleSortDrop(e) {
-  const container = e.currentTarget;
-  const children = [...container.children];
-
-  // 计算有效索引（排除未分类文件夹）
-  let newIndex = -1;
-  children.forEach((child, index) => {
-    if (child.classList.contains('dragging') && !child.classList.contains('uncategorized')) {
-      newIndex = index;
-    }
-  });
-
-  if (newIndex === -1) return;
-
-  // 处理文件夹排序
-  if (dragState.type === 'folder') {
-    // 转换为实际数组索引（需减去未分类占位）
-    const actualIndex = Math.max(newIndex - 1, 0);
-    const folder = folders.find(f => f.id === dragState.id);
-    
-    // 从原位置移除并插入新位置
-    folders = folders.filter(f => f.id !== dragState.id);
-    folders.splice(actualIndex, 0, folder);
-
-    // 立即保存并更新界面
-    await chrome.storage.local.set({ folders });
-    renderFolders();
-  }
-  // 处理记录排序（保持原逻辑）
-  else if (dragState.type === 'record') {
-    const record = records.find(r => r.id === dragState.id);
-    records = records.filter(r => r.id !== dragState.id);
-    records.splice(newIndex, 0, record);
-    await chrome.storage.local.set({ timeRecords: records });
-    renderRecords();
-  }
-
-  dragState = { type: null, id: null, startIndex: -1, currentList: null };
-}
-
-
-// 以下为原始未修改代码
-function handleKeyPress(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    handleRecordClick();
-  }
-}
 
 function handleFolderClick(e) {
   const deleteBtn = e.target.closest('.folder-delete-btn');
   if (deleteBtn) {
     handleFolderDelete(deleteBtn);
+    return;
+  }
+
+  // 如果點擊的是編輯容器或其子元素，不處理選擇事件
+  if (e.target.closest('.edit-container')) {
     return;
   }
 
@@ -266,7 +187,7 @@ function renderFolders() {
            data-id="${folder.id}"
            draggable="true">
         <button class="folder-delete-btn" aria-label="刪除資料夾">×</button>
-        <div class="folder-name" data-id="${folder.id}" ondblclick="handleFolderNameDoubleClick(event, '${folder.id}')">📁 ${folder.name}</div>
+        <div class="folder-name" data-id="${folder.id}">📁 ${folder.name}</div>
         <div class="folder-count">
           ${records.filter(r => r.folderId === folder.id).length}
         </div>
@@ -283,32 +204,61 @@ function renderFolders() {
     item.addEventListener('drop', handleFolderDrop);
   });
 
-  // 綁定其他原有的事件（如刪除按鈕等）
+  // 綁定資料夾名稱的雙擊事件
+  document.querySelectorAll('.folder-name').forEach(nameElement => {
+    if (nameElement.closest('.folder-item').dataset.id !== 'uncategorized') {
+      nameElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+      
+      let clickTimeout;
+      let clickCount = 0;
+      
+      nameElement.addEventListener('mousedown', (e) => {
+        clickCount++;
+        if (clickCount === 1) {
+          clickTimeout = setTimeout(() => {
+            clickCount = 0;
+            // 單擊事件：選擇資料夾
+            const folderItem = nameElement.closest('.folder-item');
+            if (folderItem) {
+              currentFolder = folderItem.dataset.id === 'uncategorized' ? null : folderItem.dataset.id;
+              renderFolders();
+              renderRecords();
+            }
+          }, 200);
+        } else if (clickCount === 2) {
+          clearTimeout(clickTimeout);
+          clickCount = 0;
+          // 雙擊事件：編輯資料夾名稱
+          handleFolderNameDoubleClick(e, nameElement.dataset.id);
+        }
+      });
+    }
+  });
+
+  // 綁定其他點擊事件（刪除按鈕和資料夾項目的點擊）
   UI.foldersList.addEventListener('click', handleFolderClick);
 }
 
-// 拖曳開始
-function handleFolderDragStart(e) {
-  e.stopPropagation();
-  const folderItem = e.target.closest('.folder-item');
-  folderItem.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', folderItem.dataset.id);
-}
-
-// 拖曳結束
-function handleFolderDragEnd(e) {
-  e.preventDefault();
-  document.querySelector('.folder-item.dragging')?.classList.remove('dragging');
-  removeAllPreviewEffects();
-}
-
-// 拖曳經過
 function handleFolderDragOver(e) {
   e.preventDefault();
   const folderItem = e.target.closest('.folder-item');
-  if (!folderItem || folderItem.classList.contains('uncategorized')) return;
+  if (!folderItem) return;
 
+  // 如果是記錄被拖曳到資料夾
+  if (dragState?.type === 'record') {
+    if (!folderItem.classList.contains('dragging')) {
+      document.querySelectorAll('.folder-item').forEach(item => {
+        item.classList.remove('dragover');
+      });
+      folderItem.classList.add('dragover');
+    }
+    return;
+  }
+
+  // 原有的資料夾排序邏輯
+  if (!folderItem || folderItem.classList.contains('uncategorized')) return;
   const draggingItem = document.querySelector('.folder-item.dragging');
   if (!draggingItem || draggingItem === folderItem) return;
 
@@ -318,15 +268,12 @@ function handleFolderDragOver(e) {
   const draggingIndex = folderItems.indexOf(draggingItem);
   const targetIndex = folderItems.indexOf(folderItem);
   
-  // 計算滑鼠位置
   const rect = folderItem.getBoundingClientRect();
   const mouseY = e.clientY;
   const threshold = rect.top + (rect.height / 2);
   
-  // 移除當前拖曳項目
   draggingItem.parentNode.removeChild(draggingItem);
   
-  // 根據滑鼠位置決定插入點
   if (mouseY < threshold) {
     folderItem.parentNode.insertBefore(draggingItem, folderItem);
   } else {
@@ -336,30 +283,75 @@ function handleFolderDragOver(e) {
   e.dataTransfer.dropEffect = 'move';
 }
 
-// 處理拖放
 async function handleFolderDrop(e) {
   e.preventDefault();
+  const folderItem = e.target.closest('.folder-item');
+  if (!folderItem) return;
+
+  // 處理記錄拖曳到資料夾的情況
+  if (dragState?.type === 'record') {
+    const recordId = dragState.id;
+    const targetFolderId = folderItem.dataset.id === 'uncategorized' ? null : folderItem.dataset.id;
+    
+    // 更新記錄的資料夾
+    const record = records.find(r => r.id === recordId);
+    if (record) {
+      record.folderId = targetFolderId;
+      await chrome.storage.local.set({ timeRecords: records });
+      renderFolders();
+      renderRecords();
+      showTempStatus('✓ 已移動記錄');
+    }
+    
+    // 清除拖曳效果
+    document.querySelectorAll('.folder-item').forEach(item => {
+      item.classList.remove('dragover');
+    });
+    return;
+  }
+
+  // 原有的資料夾排序邏輯
+  if (!dragState || dragState.type !== 'folder') return;
   const foldersList = document.getElementById('foldersList');
   const folderItems = [...foldersList.querySelectorAll('.folder-item:not(.uncategorized)')];
   
-  // 根據當前 DOM 順序更新 folders 陣列
   const newFolders = folderItems.map(item => {
     const folderId = item.dataset.id;
     return folders.find(f => f.id === folderId);
-  }).filter(Boolean); // 過濾掉可能的 undefined
+  }).filter(Boolean);
   
-  // 更新 folders 陣列
   folders = newFolders;
+  await chrome.storage.local.set({ folders });
+  renderFolders();
+  showTempStatus('✓ 已更新資料夾順序');
+}
 
-  // 保存新順序
-  try {
-    await chrome.storage.local.set({ folders });
-    renderFolders();
-    showTempStatus('✓ 已更新資料夾順序');
-  } catch (error) {
-    console.error('保存資料夾順序失敗:', error);
-    showTempStatus('✕ 更新順序失敗');
+function formatTimeForUrl(timeString) {
+  // 移除可能存在的空格
+  timeString = timeString.trim();
+  
+  // 分割時間字串
+  const parts = timeString.split(':');
+  let hours = 0, minutes = 0, seconds = 0;
+  
+  if (parts.length === 3) {
+    // 格式為 HH:MM:SS
+    hours = parseInt(parts[0]);
+    minutes = parseInt(parts[1]);
+    seconds = parseInt(parts[2]);
+  } else if (parts.length === 2) {
+    // 格式為 MM:SS
+    minutes = parseInt(parts[0]);
+    seconds = parseInt(parts[1]);
   }
+  
+  // 組合時間參數
+  let timeParam = '';
+  if (hours > 0) timeParam += `${hours}h`;
+  if (minutes > 0) timeParam += `${minutes}m`;
+  if (seconds > 0) timeParam += `${seconds}s`;
+  
+  return timeParam;
 }
 
 function renderRecords() {
@@ -367,33 +359,66 @@ function renderRecords() {
     ? records.filter(r => r.folderId === currentFolder)
     : records.filter(r => !r.folderId);
 
-  UI.recordsList.innerHTML = filteredRecords.map(record => `
-    <div class="record-item" 
-         data-id="${record.id}"
-         draggable="true">
-      <div class="record-header">
-        <div>
-          <div class="record-topic" data-id="${record.id}">${record.topic}</div>
-          <div class="record-title">
-            <a href="${record.channelUrl || '#'}" 
+  // 按照直播標題分組
+  const groupedRecords = {};
+  filteredRecords.forEach(record => {
+    if (!groupedRecords[record.title]) {
+      groupedRecords[record.title] = [];
+    }
+    groupedRecords[record.title].push(record);
+  });
+
+  // 生成 HTML
+  UI.recordsList.innerHTML = Object.entries(groupedRecords).map(([title, groupRecords]) => {
+    const recordsHtml = groupRecords.map(record => {
+      const timeParam = formatTimeForUrl(record.liveTime);
+      const videoUrl = record.channelUrl + (timeParam ? `?t=${timeParam}` : '');
+      
+      return `
+        <div class="record-item" 
+             data-id="${record.id}"
+             data-group="${title}"
+             draggable="true">
+          <div class="record-header">
+            <div>
+              <div class="record-topic" data-id="${record.id}">${record.topic}</div>
+            </div>
+            <div class="action-buttons">
+              <button class="copy-btn" title="複製時間點">⎘</button>
+              <button class="delete-btn" aria-label="刪除">&times;</button>
+            </div>
+          </div>
+          <div class="record-time">
+            <span>${record.timestamp}</span>
+            <span>${record.liveTime}</span>
+          </div>
+          <div class="record-link">
+            <a href="${videoUrl}" 
                target="_blank" 
                class="stream-link"
-               title="前往影片列表">
-              ${record.title}
+               title="前往影片時間點">
+              前往VOD
             </a>
           </div>
         </div>
-        <div class="action-buttons">
-          <button class="copy-btn" title="複製時間點">⎘</button>
-          <button class="delete-btn" aria-label="刪除">&times;</button>
+      `;
+    }).join('');
+
+    return `
+      <div class="records-group" draggable="true" data-title="${title}">
+        <div class="group-header">
+          <div class="group-title">${title}</div>
+          <div class="group-info">
+            <span class="group-count">${groupRecords.length}</span>
+            <span class="group-toggle">▼</span>
+          </div>
+        </div>
+        <div class="group-content show">
+          ${recordsHtml}
         </div>
       </div>
-      <div class="record-time">
-        <span>${record.timestamp}</span>
-        <span>${record.liveTime}</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   // 移除之前的事件監聽器
   UI.recordsList.removeEventListener('click', handleDeleteClick);
@@ -406,10 +431,93 @@ function renderRecords() {
   // 為所有 record-topic 添加雙擊事件
   document.querySelectorAll('.record-topic').forEach(topic => {
     topic.addEventListener('dblclick', (e) => {
-      e.stopPropagation(); // 阻止事件冒泡
+      e.stopPropagation();
       handleTopicDoubleClick(e, topic.dataset.id);
     });
   });
+
+  // 為所有標題區域添加點擊事件
+  document.querySelectorAll('.group-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      const toggle = header.querySelector('.group-toggle');
+      toggleGroup(e, toggle);
+    });
+  });
+
+  // 添加群組拖曳相關事件
+  document.querySelectorAll('.records-group').forEach(group => {
+    group.addEventListener('dragstart', handleGroupDragStart);
+    group.addEventListener('dragend', handleGroupDragEnd);
+    group.addEventListener('dragover', handleGroupDragOver);
+    group.addEventListener('drop', handleGroupDrop);
+  });
+
+  // 添加記錄拖曳相關事件
+  document.querySelectorAll('.record-item').forEach(item => {
+    item.addEventListener('dragstart', handleDragStart);
+    item.addEventListener('dragend', handleDragEnd);
+    item.addEventListener('dragover', handleRecordDragOver);
+    item.addEventListener('drop', handleRecordDrop);
+  });
+}
+
+// 群組拖曳相關函數
+function handleGroupDragStart(e) {
+  const group = e.currentTarget;
+  group.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  dragState = {
+    type: 'group',
+    title: group.dataset.title
+  };
+}
+
+function handleGroupDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  dragState = null;
+}
+
+function handleGroupDragOver(e) {
+  e.preventDefault();
+  if (!dragState || dragState.type !== 'group') return;
+
+  const group = e.currentTarget;
+  if (group.classList.contains('dragging')) return;
+
+  const draggingGroup = document.querySelector('.records-group.dragging');
+  if (!draggingGroup || draggingGroup === group) return;
+
+  const rect = group.getBoundingClientRect();
+  const threshold = rect.top + rect.height / 2;
+
+  if (e.clientY < threshold) {
+    group.parentNode.insertBefore(draggingGroup, group);
+  } else {
+    group.parentNode.insertBefore(draggingGroup, group.nextSibling);
+  }
+}
+
+async function handleGroupDrop(e) {
+  e.preventDefault();
+  if (!dragState || dragState.type !== 'group') return;
+
+  const groups = [...document.querySelectorAll('.records-group')];
+  const newRecords = [...records];
+
+  // 根據新的群組順序重新排序記錄
+  groups.forEach(group => {
+    const groupTitle = group.dataset.title;
+    const groupRecords = newRecords.filter(r => r.title === groupTitle);
+    // 將該群組的記錄從陣列中移除
+    newRecords.splice(0, newRecords.length, ...newRecords.filter(r => r.title !== groupTitle));
+    // 將該群組的記錄添加到陣列末尾
+    newRecords.push(...groupRecords);
+  });
+
+  // 保存新順序
+  records = newRecords;
+  await chrome.storage.local.set({ timeRecords: records });
+  showTempStatus('✓ 已更新群組順序');
 }
 
 async function handleDeleteClick(e) {
@@ -425,79 +533,69 @@ async function handleDeleteClick(e) {
   showTempStatus('✓ 已刪除記錄');
 }
 
+// 記錄拖曳相關函數
 function handleDragStart(e) {
-  const item = e.target.closest('[data-id]');
-  if (!item) return;
+  const recordItem = e.target.closest('.record-item');
+  if (!recordItem) return;
 
-  // 明确禁止未分类文件夹拖拽
-  if (item.classList.contains('uncategorized')) {
-    e.preventDefault();
-    return;
-  }
-
-  // 精确判断文件夹类型
-  const isFolder = item.classList.contains('folder-item') && 
-                  !item.classList.contains('uncategorized');
-  
-  dragState = {
-    type: isFolder ? 'folder' : 'record',
-    id: item.dataset.id,
-    startIndex: Array.from(item.parentElement.children).indexOf(item),
-    currentList: isFolder ? folders : records
-  };
-
-  item.classList.add('dragging');
+  recordItem.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
+  dragState = {
+    type: 'record',
+    id: recordItem.dataset.id,
+    group: recordItem.dataset.group
+  };
 }
 
 function handleDragEnd(e) {
-  document.querySelectorAll('.dragging, .dragover').forEach(el => {
-    el.classList.remove('dragging', 'dragover');
-  });
-  dragState = { type: null, id: null, startIndex: -1, currentList: null };
+  e.target.closest('.record-item')?.classList.remove('dragging');
+  dragState = null;
 }
 
-function handleDragOver(e) {
+function handleRecordDragOver(e) {
   e.preventDefault();
-  document.querySelectorAll('.folder-item.dragover').forEach(folder => {
-    folder.classList.remove('dragover');
+  const recordItem = e.target.closest('.record-item');
+  if (!recordItem || !dragState || dragState.type !== 'record') return;
+  
+  // 確保在同一組內拖曳
+  if (recordItem.dataset.group !== dragState.group) return;
+
+  const draggingItem = document.querySelector('.record-item.dragging');
+  if (!draggingItem || draggingItem === recordItem) return;
+
+  const rect = recordItem.getBoundingClientRect();
+  const threshold = rect.top + rect.height / 2;
+  
+  if (e.clientY < threshold) {
+    recordItem.parentNode.insertBefore(draggingItem, recordItem);
+  } else {
+    recordItem.parentNode.insertBefore(draggingItem, recordItem.nextSibling);
+  }
+}
+
+async function handleRecordDrop(e) {
+  e.preventDefault();
+  const container = e.target.closest('.group-content');
+  if (!container || !dragState || dragState.type !== 'record') return;
+
+  const items = [...container.querySelectorAll('.record-item')];
+  const newRecords = [...records];
+  
+  // 更新記錄順序
+  items.forEach((item, index) => {
+    const recordId = item.dataset.id;
+    const recordIndex = newRecords.findIndex(r => r.id === recordId);
+    if (recordIndex !== -1) {
+      const record = newRecords.splice(recordIndex, 1)[0];
+      newRecords.splice(index, 0, record);
+    }
   });
 
-  const targetFolder = e.target.closest('.folder-item');
-  if (targetFolder && dragState.type === 'record') {
-    targetFolder.classList.add('dragover');
-    e.dataTransfer.dropEffect = 'move';
-  }
-}
-
-function handleDragLeave(e) {
-  const leftFolder = e.target.closest('.folder-item');
-  if (leftFolder) {
-    setTimeout(() => {
-      const currentPos = document.elementFromPoint(e.clientX, e.clientY);
-      if (!leftFolder.contains(currentPos)) {
-        leftFolder.classList.remove('dragover');
-      }
-    }, 10);
-  }
-}
-
-async function handleDrop(e) {
-  const targetFolder = e.target.closest('.folder-item');
-  if (!targetFolder || dragState.type !== 'record') return;
-
-  targetFolder.classList.remove('dragover');
-  const record = records.find(r => r.id === dragState.id);
-  const newFolderId = targetFolder.dataset.id === 'uncategorized' ? 
-                     null : targetFolder.dataset.id;
-
-  record.folderId = newFolderId;
+  // 保存新順序
+  records = newRecords;
   await chrome.storage.local.set({ timeRecords: records });
-  
-  currentFolder = newFolderId;
-  renderFolders();
   renderRecords();
-  showTempStatus(`✓ 已移動至「${getFolderName(newFolderId)}」`);
+  showTempStatus('✓ 已更新記錄順序');
 }
 
 function getDragAfterElement(container, y, type) {
@@ -521,35 +619,68 @@ async function handleRecordClick() {
   try {
     UI.statusEl.textContent = '記錄中...';
     
-    const [timeResponse, titleResponse, channelResponse] = await Promise.all([
-      chrome.tabs.sendMessage(currentTab.id, { action: "getCurrentTime" }),
-      chrome.tabs.sendMessage(currentTab.id, { action: "getStreamTitle" }),
-      chrome.tabs.sendMessage(currentTab.id, { action: "getChannelUrl" })
-    ]);
-
-    if (!timeResponse.success) {
-      handleTimeError(timeResponse.error);
-      return;
+    // 檢查頁面是否已經準備好
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // 嘗試重新注入 content script
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
+    } catch (error) {
+      console.log('Content script 已存在或注入失敗:', error);
     }
 
-    const newRecord = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleString(),
-      liveTime: timeResponse.time,
-      title: titleResponse.title || '無標題直播',
-      topic: UI.titleInput.value.trim() || '無主題',
-      folderId: currentFolder || null,
-      channelUrl: channelResponse.url
-    };
+    // 添加重試機制
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError = null;
 
-    records = [newRecord, ...records].slice(0, 100);
-    UI.titleInput.value = '';
-    
-    await chrome.storage.local.set({ timeRecords: records });
-    renderFolders();
-    renderRecords();
-    
-    showTempStatus('✓ 記錄成功');
+    while (retryCount < maxRetries) {
+      try {
+        const [timeResponse, titleResponse, channelResponse] = await Promise.all([
+          chrome.tabs.sendMessage(tab.id, { action: "getCurrentTime" }),
+          chrome.tabs.sendMessage(tab.id, { action: "getStreamTitle" }),
+          chrome.tabs.sendMessage(tab.id, { action: "getChannelUrl" })
+        ]);
+
+        if (!timeResponse.success) {
+          handleTimeError(timeResponse.error);
+          return;
+        }
+
+        const newRecord = {
+          id: Date.now().toString(),
+          timestamp: new Date().toLocaleString(),
+          liveTime: timeResponse.time,
+          title: titleResponse.title || '無標題直播',
+          topic: UI.titleInput.value.trim() || '無主題',
+          folderId: currentFolder || null,
+          channelUrl: channelResponse.url
+        };
+
+        records = [newRecord, ...records].slice(0, 100);
+        UI.titleInput.value = '';
+        
+        await chrome.storage.local.set({ timeRecords: records });
+        renderFolders();
+        renderRecords();
+        
+        showTempStatus('✓ 記錄成功');
+        return;
+      } catch (error) {
+        lastError = error;
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 500)); // 等待 500ms 後重試
+      }
+    }
+
+    // 如果所有重試都失敗了
+    if (lastError) {
+      console.error('重試失敗:', lastError);
+      showErrorMessage('無法與頁面建立連線，請重新整理頁面後再試');
+    }
   } catch (error) {
     handleRuntimeError(error);
   } finally {
@@ -579,6 +710,9 @@ function handleTimeError(errorCode) {
 
 function showErrorMessage(message) {
   UI.statusEl.innerHTML = `<div class="error-message">${message}</div>`;
+  setTimeout(() => {
+    UI.statusEl.textContent = '就緒';
+  }, 3000);
 }
 
 function handleCriticalError(context, error) {
@@ -840,4 +974,30 @@ function removeAllPreviewEffects() {
   document.querySelectorAll('.folder-item').forEach(item => {
     item.classList.remove('preview-above', 'preview-below');
   });
+}
+
+// 修改折疊功能
+function toggleGroup(event, toggleBtn) {
+  event.stopPropagation(); // 阻止事件冒泡
+  const header = toggleBtn.closest('.group-header');
+  const content = header.nextElementSibling;
+  
+  if (content.classList.contains('show')) {
+    // 收起
+    content.classList.remove('show');
+    toggleBtn.textContent = '▶';
+    header.classList.add('collapsed');
+  } else {
+    // 展開
+    content.classList.add('show');
+    toggleBtn.textContent = '▼';
+    header.classList.remove('collapsed');
+  }
+}
+
+function handleKeyPress(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleRecordClick();
+  }
 }
