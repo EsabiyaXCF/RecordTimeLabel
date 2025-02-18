@@ -1,7 +1,9 @@
 # RecordTimeLabels
 作者:台V上的一朵雛菊🌼
 
-方便記錄Twitch直播時間點，一鍵前往紀錄點VOD
+方便記錄Twitch、Youtube直播與影片時間點，一鍵前往紀錄點VOD網頁，也可以直接跳轉時間點
+簡易資料夾分類系統
+支持拖曳紀錄順序與拖曳紀錄至其他資料夾
 
 ***
 
@@ -82,5 +84,6 @@
 有使用AI輔助Coding，所以整個架構和註解並不是寫得很好，請見諒
 
 <a href="https://www.flaticon.com/free-icons/timestamp" title="timestamp icons">Timestamp icons created by Icon home - Flaticon</a>
+<a href="https://www.flaticon.com/free-icons/right-arrow" title="right arrow icons">Right arrow icons created by Iconir - Flaticon</a>
 
 
