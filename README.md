@@ -1,4 +1,4 @@
-# TwitchTimeLabels
+# RecordTimeLabels
 作者:台V上的一朵雛菊🌼
 
 方便記錄Twitch直播時間點，一鍵前往紀錄點VOD
@@ -14,22 +14,12 @@
 * 前往紀錄點的VOD
   <details>
 
-  點擊前往VOD可以自動跳轉到紀錄時間的VOD
+  點擊向右箭頭可以自動跳轉到紀錄時間的VOD
   
   </details>
 
 * 紀錄點、資料夾拖曳調整順序前後
 * 左鍵長按拖曳紀錄點、資料夾即可調整紀錄點前後
-
-* 複製紀錄時間點
-  
-  <details>
-    
-  點擊左邊的複製鈕
-  
-  ![螢幕擷取畫面 2025-01-28 024118](https://github.com/user-attachments/assets/02e82671-5cba-4424-96a8-31902a8899a4)
-
-  <details/>
 
 * 刪除紀錄點
 
