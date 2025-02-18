@@ -1,4 +1,4 @@
-# RecordTimeLabels
+# RecordTimeLabel
 作者:台V上的一朵雛菊🌼
 
 方便記錄Twitch、Youtube直播與影片時間點，一鍵前往紀錄點VOD網頁，也可以直接跳轉時間點
