@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "Twitch 時間標記器",
+    "version": "1.2",
+    "description": "精準記錄Twitch直播時間點",
+    "icons": {
+      "128": "icons/icon128.png"
+    },
+    "permissions": ["storage", "activeTab", "scripting", "clipboardWrite"],
+    "host_permissions": [
+      "*://*.twitch.tv/*",
+      "https://api.twitch.tv/*"
+    ],
+    "action": {
+      "default_popup": "popup/popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://*.twitch.tv/*"],
+        "js": ["content.js"],
+        "run_at": "document_end",
+        "all_frames": false
+      }
+    ]
+  }
