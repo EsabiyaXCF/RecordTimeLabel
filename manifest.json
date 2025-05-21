@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Twitch 時間標記器",
-    "version": "1.2",
-    "description": "精準記錄Twitch直播時間點",
+    "name": "RecordTimeLabel",
+    "version": "2.8",
+    "description": "精準記錄影片直播時間點",
     "icons": {
       "128": "icons/icon128.png"
     },
