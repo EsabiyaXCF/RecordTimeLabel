@@ -1,47 +1,82 @@
-# Privacy Policy for Record Time Label
+# 隱私權政策（Privacy Policy）
 
-**Last Updated:** 2024-05-24
+**最後更新日期：2025-06-22**
 
-This Privacy Policy describes how "Record Time Label" (the "Extension") collects, uses, and handles your information when you use our Chrome extension.
+感謝您使用「Record Time Label」（以下簡稱「本擴充功能」或「本服務」）。本文件將說明我們如何蒐集、使用、儲存及保護您在使用本擴充功能時所提供或產生的資料。
 
-## 1. Information We Collect
+---
 
-To provide cloud synchronization features, we collect the following information:
+## 1. 我們蒐集哪些資料
 
-*   **Authentication Information**: When you choose to log in, we collect information necessary to authenticate you.
-    *   **Google Login**: We receive your basic profile information, including your Google User ID and email address, as provided by Google's authentication service.
-    *   **Email/Password Login**: We collect the email address you provide and a hashed version of your password. We never store your plain-text password.
+| 種類 | 說明 | 來源 |
+| ---- | ---- | ---- |
+| 驗證資料 | 僅在您選擇登入時才會蒐集，用於辨識並同步您的帳號資料。 | ‑ Google OAuth (透過 Chrome Identity API)<br/>- Facebook OAuth (透過 Chrome Identity API)<br/>- Email／密碼（透過 Cloud Functions 取得 Firebase Custom Token） |
+| 使用者產生內容 | 由您在本擴充功能中建立或修改的資料：<br/>- 時間標籤（時間戳、說明文字）<br/>- 群組／資料夾結構與排序<br/>- 偏好設定（例如介面語言） | 由您在擴充功能操作時產生 |
 
-*   **User-Generated Content**: All the data you create using the extension is stored to enable synchronization across your devices. This includes:
-    *   Time labels (timestamps and descriptions).
-    *   Folders you create to organize your labels.
+> 本擴充功能 **不會** 存取瀏覽器歷史、Cookies、廣告 ID，亦不會在背景追蹤您於其他網站的行為。
 
-## 2. How We Use Your Information
+---
 
-Your information is used solely for the following purposes:
+## 2. 資料如何被使用
 
-*   **To Provide Core Functionality**: To save, retrieve, and synchronize your time labels and folders across different browsers and devices where you are logged in.
-*   **Authentication**: To identify you as a user and provide access to your stored data.
+1. **帳號識別與同步**：登入後可將您的標籤、資料夾等內容同步至 Firebase Cloud Firestore，讓您在不同裝置瀏覽器上取得同一份資料。
+2. **維護與改善服務**：我們會使用匿名化的錯誤日誌與使用資訊（僅限非個資）來排除錯誤、優化效能。
+3. **不作行銷用途**：您的個人資訊不會被用於廣告投放、再行銷或類似商業用途。
 
-## 3. Data Storage and Security
+---
 
-*   Your authentication information and user-generated content are securely stored on Google's **Firebase** platform (Firestore and Firebase Authentication).
-*   We take reasonable measures to protect your information, including using secure connections (HTTPS) and relying on the robust security infrastructure of Google Firebase.
+## 3. 第三方服務
 
-## 4. Information Sharing and Disclosure
+本擴充功能使用以下第三方服務，並遵守其隱私權政策：
 
-**We do not share, sell, rent, or trade your personal information with any third parties for their commercial purposes.**
+| 服務 | 目的 | 隱私權政策 |
+| ---- | ---- | ---- |
+| Google Firebase Authentication / Cloud Firestore | 使用者驗證、資料儲存與同步 | <https://policies.google.com/privacy> |
+| Google OAuth (Chrome Identity API) | Google 帳號登入 | <https://policies.google.com/privacy> |
+| Facebook OAuth (Chrome Identity API) | Facebook 帳號登入 | <https://www.facebook.com/about/privacy> |
 
-Your data is only accessed by the Extension to provide the synchronization service to you.
+---
 
-## 5. Data Retention
+## 4. 資料儲存與安全措施
 
-You can delete your account and all associated data at any time from within the extension's settings. Upon account deletion, all your user-generated content and authentication information will be permanently removed from our Firebase database.
+* 所有資料透過 **HTTPS/TLS** 傳輸。
+* 資料存放於 Google Cloud（Firebase）並受其安全機制保護。
+* 僅授權的 Firebase Security Rules 可存取您的文件；未經授權者無法讀取或修改。
+* 密碼永遠不會以明文形式儲存；Email／密碼登入會透過安全的 Cloud Function 建立自訂權杖後才交由 Firebase 認證。
 
-## 6. Changes to This Privacy Policy
+---
 
-We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy within the extension or on its web store page. You are advised to review this Privacy Policy periodically for any changes.
+## 5. 資料分享與揭露
 
-## 7. Contact Us
+我們 **不會** 與任何第三方分享、出售或出租您的個人資訊；唯一例外是依法律要求或司法機關正式請求時，才可能依法配合提供。
 
-If you have any questions about this Privacy Policy, please contact the developer through the Chrome Web Store support channel. 
+---
+
+## 6. 資料保留與刪除
+
+* 您可在擴充功能「設定 → 帳號管理」中選擇「刪除帳號」。
+* 一旦確認刪除，與該帳號相關的所有標籤、資料夾、設定與驗證紀錄將從 Firebase 永久移除，且無法復原。
+
+---
+
+## 7. 您的權利
+
+* **查詢與更正**：隨時檢視並編輯您在擴充功能中儲存的內容。
+* **撤回同意**：您可選擇登出，停止資料同步；或透過「刪除帳號」撤回所有資料。
+
+---
+
+## 8. 政策變更
+
+當本政策有重大變更時，我們會：
+
+1. 於擴充功能內彈出提示或更新日誌中說明。
+2. 在 Chrome 線上應用程式商店頁面更新「隱私權政策」連結內容。
+
+建議您定期檢閱本政策以了解最新內容。
+
+---
+
+## 9. 聯絡方式
+
+若您對本隱私權政策有任何疑問或要求，請透過 Chrome 線上應用程式商店的「聯絡開發人員」功能來信，我們將盡速回覆。 
