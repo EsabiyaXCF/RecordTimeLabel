@@ -2,8 +2,8 @@
 
 > **跨平台、雲端同步的 YouTube / Twitch 時間標記管理工具**
 
-![version](https://img.shields.io/badge/version-2.9-blue?style=flat-square)
-![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![version](https://img.shields.io/badge/version-2.2-blue?style=flat-square)
+![license](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
 ![chrome-web-store](https://img.shields.io/badge/Chrome%20Web%20Store-Coming%20Soon-orange?style=flat-square)
 
 RecordTimeLabel 是一款專為直播愛好者打造的瀏覽器擴充功能，能夠 **即時記錄直播或 VOD 的時間點**，並以資料夾方式進行整理、批次管理，同時支援 **雲端同步** 與 **多語言介面**。讓你在 YouTube 與 Twitch 之間穿梭自如，再也不怕錯過精彩片段！
@@ -27,7 +27,7 @@ RecordTimeLabel 是一款專為直播愛好者打造的瀏覽器擴充功能，�
 
 ---
 
-## ✨ 功能總覽
+## ✨ 最新功能總覽
 
 ### 1. 雲端同步
 - **Google / Email 登入**，跨裝置同步紀錄與資料夾。
@@ -63,87 +63,16 @@ RecordTimeLabel 是一款專為直播愛好者打造的瀏覽器擴充功能，�
 
 ## 🚀 快速上手
 
-1. **下載專案並安裝依賴**
-   ```bash
-   git clone https://github.com/yourname/RecordTimeLabel_ui.git
-   cd RecordTimeLabel_ui
-   npm install
-   ```
-2. **開發模式啟動**
-   ```bash
-   npm run dev
-   ```
-   透過 Vite 進行即時熱重載。
-3. **生產環境打包**
-   ```bash
-   npm run build
-   ```
-   打包後生成 `dist` 目錄。
-4. **載入至 Chrome**
+1. **下載 Release**
+   - 前往 [Releases](https://github.com/yourname/RecordTimeLabel_ui/releases) 頁面，下載最新版 `RecordTimeLabel_x.x.x.zip`（或 `.crx`）。
+2. **解壓縮檔案**
+   - 將壓縮檔解壓縮後，取得資料夾（通常包含 `manifest.json` 與 `dist/` 內容）。
+3. **載入至 Chrome**
    - 打開 `chrome://extensions/`，啟用「開發者模式」。
-   - 點擊「載入未封裝項目」，選取 `dist` 資料夾。
-5. **登入啟用雲端同步**
+   - 點擊「載入未封裝項目」，選取剛剛解壓縮的資料夾。
+4. **登入啟用雲端同步（可選）**
    - 點擊擴充圖示 → 登入 Google 帳號，即可開始自動同步。
 
 > **提示**：若您只想本機使用，登入步驟可略過，擴充功能將以離線模式運作。
 
----
-
-## 🖼️ 介面截圖
-
-> 放置幾張 GIF / PNG 展示核心功能（雲端同步指示器、批次模式、智能整理等）。
-
----
-
-## 🔄 指令與腳本
-
-| 指令 | 說明 |
-| --- | --- |
-| `npm run dev` | 開啟開發伺服器 (Vite) |
-| `npm run build` | 生產環境打包 (Vite + Terser) |
-| `npm run lint` | 使用 ESLint 檢查程式碼 |
-| `npm run format` | 使用 Prettier 美化程式碼 |
-
----
-
-## 🛠️ 技術棧
-
-- **React 18** + **Vite**：極速前端開發體驗。
-- **Tailwind CSS**：原子化 CSS，快速調整 UI。
-- **Firebase**：Authentication + Firestore，實現即時雲端同步。
-- **Dnd Kit**：拖放排序。
-- **Lucide Icons**：精緻圖示。
-- **Chrome Manifest V3**：最新擴充功能標準。
-
----
-
-## 🔐 隱私與安全
-
-- 僅儲存必要資訊 (email、UID)。
-- 資料加密傳輸 (HTTPS)。
-- 可隨時刪除雲端資料，並支援離線使用模式。
-
----
-
-## 🗺️ Roadmap
-
-- [ ] Safari / Firefox 版本
-- [ ] 更多語言翻譯
-- [ ] AI 自動摘要 / 標記推薦
-- [ ] 匯出為可分享的互動時間線
-
-歡迎在 [Issue](https://github.com/yourname/RecordTimeLabel_ui/issues) 提出建議！
-
----
-
-## 🤝 貢獻指南
-
-1. Fork 專案並建立分支。
-2. 提交 Pull Request 前請執行 `npm run lint && npm run format`。
-3. 詳細描述您的變更內容與動機。
-
----
-
-## 📄 授權
-
-本專案採用 **MIT License**，歡迎自由使用與二次開發。
+本專案採用 **GPL-3.0 License**，歡迎依照授權條款自由使用、修改與散布。
