@@ -22,7 +22,7 @@ RecordTimeLabel 是一個專為 YouTube 和 Twitch 平台設計的時間標記�
 
 | 資料類型 | 說明 | 用途 |
 | ---- | ---- | ---- |
-| 身份驗證資料 | Google OAuth、Facebook OAuth 或 Email/密碼 | 用於身份驗證和帳戶識別 |
+| 身份驗證資料 | Google OAuth 或 Email/密碼 | 用於身份驗證和帳戶識別 |
 | 同步資料 | 您的時間標記、資料夾結構、設定等 | 在不同裝置間同步您的資料 |
 | 使用統計 | 匿名化的錯誤日誌和基本使用資訊 | 改善服務品質和修復問題 |
 
@@ -65,7 +65,6 @@ RecordTimeLabel 是一個專為 YouTube 和 Twitch 平台設計的時間標記�
 | ---- | ---- | ---- | ---- |
 | Google Firebase | Authentication & Cloud Firestore | 使用者身份驗證、雲端資料儲存與同步 | [Google 隱私權政策](https://policies.google.com/privacy) |
 | Google OAuth | Chrome Identity API | Google 帳號登入驗證 | [Google 隱私權政策](https://policies.google.com/privacy) |
-| Facebook OAuth | Chrome Identity API | Facebook 帳號登入驗證 | [Facebook 隱私權政策](https://www.facebook.com/about/privacy) |
 
 ### 3.1 資料處理說明
 - **Firebase**：僅在您選擇雲端同步時使用，用於安全地儲存和同步您的時間標記資料
@@ -186,5 +185,5 @@ RecordTimeLabel 是一個專為 YouTube 和 Twitch 平台設計的時間標記�
 ---
 
 **本隱私權政策的最新版本永遠可在以下位置查看：**
-- GitHub：`docs/PRIVACY_POLICY.md`
+- GitHub：`https://github.com/EsabiyaXCF/RecordTimeLabel/blob/main/PRIVACY_POLICY.md`
 - 擴充功能關於頁面：點擊「隱私權政策」連結
